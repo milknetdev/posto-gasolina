@@ -1,0 +1,121 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Meu Posto de Gasolina</title>
+<meta name="description" content="Extraia, refine e transforme seu pequeno posto em um grande negócio.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%231e7956'/%3E%3Ctext x='7' y='29' font-size='27'%3E⛽%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px system-ui,sans-serif;background:#1a2d45;color:#c8d6e5;height:100dvh;overflow:hidden}
+canvas{width:100%;height:100%;display:block;touch-action:none}
+header{position:absolute;z-index:2;top:0;left:0;right:0;height:72px;padding:10px 20px;background:#0d1f2dee;border-bottom:1px solid #2d4a6f;display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none}
+h1{font-size:20px;color:#fff}
+h1 small{display:block;font-size:10px;letter-spacing:3px;color:#7ec8e3;margin-bottom:2px}
+.stats{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pill{border-radius:10px;background:#1a2d45;border:1px solid #4a6785;padding:8px 12px;font-weight:700;font-size:13px;pointer-events:none}
+.money{background:#ffd700;color:#1a3a5c;border-color:#b8960a;font-size:14px}
+#pause{background:#1a2d45;border:1px solid #4a6785;border-radius:10px;padding:8px 12px;cursor:pointer;pointer-events:auto;color:#c8d6e5;font-weight:700}
+#mission{position:absolute;left:50%;top:80px;transform:translateX(-50%);background:#0a1929;padding:8px 18px;border-radius:14px;text-align:center;font-weight:650;box-shadow:0 4px 14px #0001;max-width:90%;width:max-content;border:1px solid #2d4a6f;z-index:2;font-size:13px}
+#mission progress{display:block;width:100%;height:5px;margin-top:5px;accent-color:#ffd700}
+footer{position:absolute;bottom:0;left:0;right:0;min-height:100px;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:15px;pointer-events:none;background:#0d1f2dee;border-top:1px solid #2d4a6f;z-index:2}
+.guide{color:#c8d6e5;background:none;padding:0;line-height:1.6;font-size:11px;max-width:400px}
+.guide b{font-size:13px;color:#fff}
+.guide kbd{display:inline-block;background:#ffffff24;border:1px solid #ffffff60;border-bottom-width:3px;border-radius:4px;padding:0 4px;margin:0 2px;font-weight:700;font-size:11px;color:#c8d6e5}
+.actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:550px;pointer-events:auto}
+.actions button{background:#1a2d45;border:1px solid #4a6785;border-radius:10px;padding:9px 12px;font:700 12px system-ui;color:#c8d6e5;cursor:pointer;pointer-events:auto}
+.actions button:hover{background:#234}
+.actions button:disabled{opacity:.55;cursor:default}
+#nextUpgrade{background:#ffd700;color:#1a3a5c;border-color:#b8960a;min-width:240px;font-size:12px;white-space:normal}
+#toast{position:absolute;bottom:120px;left:50%;transform:translateX(-50%);background:#0d1f2de8;padding:8px 16px;border-radius:12px;font-weight:600;z-index:10;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;font-size:13px;border:1px solid #2d4a6f}
+#reward{position:absolute;top:140px;left:50%;transform:translateX(-50%);background:#ffd700;padding:14px 24px;border-radius:14px;font-weight:800;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:3;max-width:80vw;font-size:15px}
+#pauseScreen{position:absolute;inset:0;background:#0d1f2de8;display:none;place-items:center;z-index:20;font-size:18px;color:#fff}
+.panel{position:absolute;top:80px;right:16px;bottom:118px;overflow:auto;width:380px;max-width:94vw;padding:16px;border-radius:16px;background:#0a1929;z-index:4;box-shadow:0 12px 50px #0d1f2d30;border:1px solid #2d4a6f}
+.panel[hidden]{display:none}
+.panel .mapHead{position:sticky;top:-16px;background:#0a1929;padding:10px 0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between}
+.panel .mapHead h2{font-size:17px;margin:0;color:#fff}
+.panel .mapHead button{background:#1a2d45;border:1px solid #4a6785;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:12px;color:#c8d6e5}
+.step{border-left:3px solid #d3d9cd;padding:10px 12px;margin:0 0 0 6px}
+.step.current{border-color:#ffd700;background:#1a2d45;border-radius:0 10px 10px 0}
+.step.done{border-color:#27ae60}
+.step b{display:block;font-size:13px;margin-bottom:3px}
+.step small{display:block;font-size:12px;line-height:1.4;color:#7f8c8d}
+.bench{border:2px solid #2d4a6f;border-radius:12px;padding:12px;margin:8px 0}
+.bench.selected{border-color:#38865a;background:#1a2d45}
+.bench b{font-size:13px;display:block;margin-bottom:4px}
+.bench p{margin:5px 0;font-size:12px}
+.bench button{background:#1a2d45;border:1px solid #4a6785;border-radius:8px;padding:8px 12px;cursor:pointer;font:700 11px system-ui;color:#c8d6e5;margin-top:4px}
+.bench button:disabled{opacity:.5;cursor:default}
+.bench button:hover:not(:disabled){background:#234}
+.prodButtons{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.prodButtons button{flex:1;min-width:120px;text-align:left}
+.site-row{padding:10px 0;border-bottom:1px solid #2d4a6f;margin-bottom:8px}
+.site-row p{margin:4px 0}
+#newGame,#restoreGame{background:#1a2d45;border:1px solid #4a6785;border-radius:8px;padding:8px 12px;cursor:pointer;font:700 12px system-ui;color:#c8d6e5}
+</style>
+</head>
+<body>
+<header>
+<h1><small>DO POÇO À BOMBA</small>Meu Posto de Gasolina</h1>
+<div class="stats">
+<span class="pill" id="level">Nível 1</span>
+<span class="pill money" id="money">$ 0</span>
+<span class="pill" id="bag">🛢️ 0/6</span>
+<button id="pause" aria-label="Pausar">Ⅱ</button>
+</div>
+</header>
+<canvas id="game" aria-label="Posto de gasolina: WASD ou setas para andar"></canvas>
+<div id="mission" role="status">Vá até o poço para extrair petróleo 🛢️</div>
+<div id="toast"></div>
+<div id="reward"></div>
+<footer>
+<div class="guide">
+<b>G poço · R refinaria · B bombas · T bombas · M caixa</b><br>
+<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> para andar<br>
+P produção · E próxima meta · U evolução · Espaço pausar<br>
+<span style="color:#7ec8e3;font-size:10px">Refinaria: leve matéria-prima até a máquina → espere → pegue produto → leve à bomba</span><br>
+<span id="receipt" style="color:#ffe29b;font-size:11px"></span>
+</div>
+<div class="actions">
+<button id="layoutButton">L · Organizar posto</button>
+<button id="operationsButton">O · Caixas e frentistas</button>
+<button id="productionButton">P · Refinaria e equipe</button>
+<button id="benchesButton">T · Melhorar bombas</button>
+<button id="roadmapButton">U · Ver evolução</button>
+<button id="nextUpgrade">E · Próxima melhoria</button>
+<button id="newGame">Novo jogo</button>
+<button id="restoreGame">Restaurar</button>
+</div>
+</footer>
+<aside id="roadmap" class="panel" hidden>
+<div class="mapHead"><h2>Evolução do Posto</h2><button id="closeRoadmap">Fechar</button></div>
+<div id="steps"></div>
+</aside>
+<aside id="benches" class="panel" hidden>
+<div class="mapHead"><h2>Melhorar Bombas</h2><button id="closeBenches">Fechar</button></div>
+<div id="benchList"></div>
+</aside>
+<aside id="productionPanel" class="panel" hidden>
+<div class="mapHead"><h2>Refinaria e Produção</h2><button id="closeProduction">Fechar</button></div>
+<div id="productionList"></div>
+<div id="specialistList"></div>
+</aside>
+<aside id="operationsPanel" class="panel" hidden>
+<div class="mapHead"><h2>Caixas e Logística</h2><button id="closeOperations">Fechar</button></div>
+<div id="operationsList"></div>
+</aside>
+<aside id="layoutPanel" class="panel" hidden>
+<div class="mapHead"><h2>Organizar Posto</h2><button id="closeLayout">Fechar</button></div>
+<p style="font-size:12px;margin:8px 0">Selecione um item para mover.</p>
+<select id="layoutSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid #2d4a6f;background:#1a2d45;color:#c8d6e5;font-size:13px"></select>
+<p style="font-size:11px;margin:6px 0"><b>Setas: mover · Enter: salvar · Tab: próximo · Esc: cancelar</b></p>
+<p id="layoutFeedback" style="font-size:12px;margin:4px 0"></p>
+</aside>
+<div id="pauseScreen" style="display:none">
+<div style="text-align:center">
+<div style="font-size:22px;margin-bottom:12px">⏸ Jogo Pausado</div>
+<button id="resume" style="background:#ffd700;border:0;border-radius:10px;padding:10px 24px;font-weight:700;font-size:14px;cursor:pointer;color:#1a3a5c">Continuar</button>
+</div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
